@@ -1,4 +1,4 @@
-# ascii_diagram
+# ascii diagram
 ASCII art diagram generator
 
 Creates diagrams based on a list of numbers.
