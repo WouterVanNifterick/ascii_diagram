@@ -1,13 +1,15 @@
 # ascii diagram
 ASCII art diagram generator
 
-Creates diagrams based on a list of numbers.
+Creates text-diagrams based on a list of numbers.
 
 * Data is automatically scaled to fit. 
 * Configurable dimensions
 * Can interpolate between points
 * Using the right characters, it can draw 2 different Y values on 1 line.
 * Optional horizontal and vertical marker lines
+
+![Screenshot](https://github.com/WouterVanNifterick/ascii_diagram/raw/master/ascii_diagram.png)
 
 **Examples**
 
