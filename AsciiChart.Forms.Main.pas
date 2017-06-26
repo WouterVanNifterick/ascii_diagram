@@ -38,14 +38,22 @@ type
     LabeledEdit1 : TLabeledEdit;
     rbSizeData   : TRadioButton;
     cbFillGaps: TCheckBox;
+    Splitter2: TSplitter;
+    StatusBar1: TStatusBar;
+    ComboBox1: TComboBox;
     procedure memInputChange(Sender: TObject);
     procedure FormCreate(Sender: TObject);
-    procedure UpdateChart(Sender: TObject);
     procedure memInputDblClick(Sender: TObject);
+    procedure UpdateChart(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
+    procedure ComboBox1Change(Sender: TObject);
   strict private
     procedure DoAutoSize;
     procedure UpdateSizeControls;
-    procedure UpdateChars;
+  private
+    procedure GuiCharsToChart;
+    procedure ChartToGuiChars;
+    procedure InitEdChar;
   public
     Chart: TChart;
     procedure GenerateSineData;
@@ -62,26 +70,24 @@ uses Math;
 
 
 procedure TfrmMain.FormCreate(Sender: TObject);
-var c:char;
 begin
   Chart := TChart.Create([],TSize.Create(80,24));
-  memInputChange(self);
-  UpdateChart(self);
-  edChars.InsertRow('Line', Chart.FSerie.DataSymbol,true);
-  edChars.ItemProps['Line'].EditStyle  :=  TEditStyle.esPickList;
-  for c in '#x|o*▋' do
-    edChars.ItemProps['Line'].PickList.Add(c);
+  InitEdChar;
 
-  edChars.InsertRow('VertMarker'        ,Chart.Chars.VertMarker,true);
-  edChars.InsertRow('HorzMarker'        ,Chart.chars.HorzMarker,true);
-  edChars.InsertRow('LeftLine'          ,Chart.Chars.LeftLine,true);
-  edChars.InsertRow('BottomLine'        ,Chart.Chars.BottomLine,true);
-  edChars.InsertRow('BottomLineCrossing',Chart.Chars.BottomLineCrossing,true);
+  memInputChange(self);
+
+  UpdateChart(self);
+  ChartToGuiChars;
 
   GenerateSineData;
 end;
 
 
+
+procedure TfrmMain.FormDestroy(Sender: TObject);
+begin
+  FreeAndNil(Chart);
+end;
 
 procedure TfrmMain.GenerateSineData;
 var
@@ -95,9 +101,57 @@ begin
   s := '';
   fs.DecimalSeparator := '.';
   for I := 0 to samples - 1 do
-    s := s + Format('%.3f' + sLineBreak, [sin(2 * 2 * pi * i / samples) * 5], fs);
+//    s := s + Format('%.3f' + sLineBreak, [sin(2 * 2 * pi * i / samples) * 5], fs);
+    s := s + Format('%.3f' + sLineBreak, [i*1.0], fs);
   memInput.Text := s;
 end;
+
+procedure TfrmMain.InitEdChar;
+var
+  c: Char;
+begin
+  edChars.InsertRow('Line', Chart.Chars.DataSymbol, true);
+  edChars.ItemProps['Line'].EditStyle := TEditStyle.esPickList;
+  if edChars.ItemProps['Line'].PickList.Count > 0 then
+    for c in '#@x|o*' do
+      edChars.ItemProps['Line'].PickList.Add(c);
+  edChars.InsertRow('VertMarker', Chart.Chars.VertMarker, true);
+  edChars.InsertRow('HorzMarker', Chart.chars.HorzMarker, true);
+  edChars.InsertRow('LeftLine', Chart.Chars.LeftLine, true);
+  edChars.InsertRow('BottomLine', Chart.Chars.BottomLine, true);
+  edChars.InsertRow('BottomLineCrossing', Chart.Chars.BottomLineCrossing, true);
+end;
+
+procedure TfrmMain.ChartToGuiChars;
+begin
+  edChars.Strings.BeginUpdate;
+
+  edChars.Values['Line'              ] := Chart.Chars.DataSymbol;
+  edChars.Values['VertMarker'        ] := Chart.Chars.VertMarker;
+  edChars.Values['HorzMarker'        ] := Chart.chars.HorzMarker;
+  edChars.Values['LeftLine'          ] := Chart.Chars.LeftLine;
+  edChars.Values['BottomLine'        ] := Chart.Chars.BottomLine;
+  edChars.Values['BottomLineCrossing'] := Chart.Chars.BottomLineCrossing;
+
+  edChars.Strings.EndUpdate;
+
+end;
+
+
+procedure TfrmMain.GuiCharsToChart;
+var
+  v: string;
+  chars:TChart.Tchars;
+begin
+  v := edChars.Values['Line'              ] + Chart.Chars.DataSymbol;         Chars.DataSymbol         := v[1];
+  v := edChars.Values['VertMarker'        ] + Chart.Chars.VertMarker;         Chars.VertMarker         := v[1];
+  v := edChars.Values['HorzMarker'        ] + Chart.Chars.HorzMarker;         Chars.HorzMarker         := v[1];
+  v := edChars.Values['LeftLine'          ] + Chart.Chars.LeftLine;           Chars.LeftLine           := v[1];
+  v := edChars.Values['BottomLine'        ] + Chart.Chars.BottomLine;         Chars.BottomLine         := v[1];
+  v := edChars.Values['BottomLineCrossing'] + Chart.Chars.BottomLineCrossing; Chars.BottomLineCrossing := v[1];
+  Chart.Chars := Chars;
+end;
+
 
 procedure TfrmMain.memInputChange(Sender: TObject);
 var
@@ -126,7 +180,9 @@ begin
       a := a+[v];
   end;
   Chart.Data := a;
-  memChart.Text := Chart.ToString;
+  UpdateChart(Sender);
+//  memChart.Text := Chart.ToString;
+
 end;
 
 procedure TfrmMain.memInputDblClick(Sender: TObject);
@@ -148,31 +204,17 @@ begin
   Chart.AxisX                 := edAxisX.Text;
   Chart.AxisY                 := edAxisY.Text;
 
-  UpdateChars;
+  GuiCharsToChart;
 
   memChart.Text := Chart.ToString;
-end;
 
-procedure TfrmMain.UpdateChars;
-var
-  v: string;
-  Chars: TChart.Tchars;
-begin
-  if edChars.RowCount<>7 then
-    Exit;
-
-  v := edChars.Values['Line']               + Chart.FSerie.DataSymbol        ; Chart.FSerie.DataSymbol  := v[1];
-  v := edChars.Values['VertMarker']         + Chart.Chars.VertMarker         ; Chars.VertMarker         := v[1];
-  v := edChars.Values['HorzMarker']         + Chart.Chars.HorzMarker         ; Chars.HorzMarker         := v[1];
-  v := edChars.Values['LeftLine']           + Chart.Chars.LeftLine           ; Chars.LeftLine           := v[1];
-  v := edChars.Values['BottomLine']         + Chart.Chars.BottomLine         ; Chars.BottomLine         := v[1];
-  v := edChars.Values['BottomLineCrossing'] + Chart.Chars.BottomLineCrossing ; Chars.BottomLineCrossing := v[1];
-  Chart.SetChars(Chars);
+  StatusBar1.Panels[1].Text := Format('Data points:%d', [Length(Chart.FSerie.FData)]);
 end;
 
 procedure TfrmMain.UpdateSizeControls;
 var
   mode: TScaleMode;
+  h:integer;
 begin
   mode := Custom;
 
@@ -201,7 +243,12 @@ begin
         tbWidth.Max       := 300;
         tbHeight.Max      := 100;
         tbWidth.Position  := length(Chart.Data) + Chart.Margins.Left + Chart.Margins.Right;
-        tbHeight.Position := (length(Chart.Data) div 3) + Chart.Margins.Top + Chart.Margins.Bottom;
+
+        h := round(Ceil(abs(Chart.FSerie.minV))+ceil(abs(Chart.FSerie.maxV)));
+        if h>40 then
+        h := (length(Chart.Data) div 3);
+        h := h + Chart.Margins.Top + Chart.Margins.Bottom;
+        tbHeight.Position := h;
         grpSize.Height    := 53;
       end;
     Custom:
@@ -215,6 +262,44 @@ begin
   lblWidth .Caption := Format('Width: %d',[tbWidth.Position]);
   lblHeight.Caption := Format('Height: %d',[tbHeight.Position]);
 
+end;
+
+
+procedure TfrmMain.ComboBox1Change(Sender: TObject);
+var
+  Chars:TChart.Tchars;
+begin
+  case Combobox1.ItemIndex of
+    1: begin
+         Chars.DataSymbol         := '#'; // █░
+         Chars.LeftLine           := '|';
+         Chars.HorzMarker         := '-';
+         Chars.VertMarker         := ':';
+         Chars.BottomLine         := '=';
+         Chars.BottomLineCrossing := '+';
+         Chart.Chars := Chars;
+       end;
+    2: begin
+         Chars.DataSymbol         := '█';
+         Chars.LeftLine           := '|';
+         Chars.HorzMarker         := '─'; //╌ ┈
+         Chars.VertMarker         := '|'; // ┊ ┼
+
+         Chars.BottomLine         := '─';
+         Chars.BottomLineCrossing := '┴';
+         Chart.Chars := Chars;
+       end;
+  end;
+
+  self.edChars.Visible := ComboBox1.ItemIndex=0;
+  if edChars.Visible then
+    grpCharacters.Height := 180
+  else
+    grpCharacters.Height := 45;
+
+  ChartToGuiChars;
+
+  UpdateChart(Sender);
 end;
 
 procedure TfrmMain.DoAutoSize;

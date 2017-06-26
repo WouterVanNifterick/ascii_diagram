@@ -23,7 +23,6 @@ type
 
   TSerie=record
     ChartType:TChartType;
-    DataSymbol:char;
     minV,maxV,vRange:double;
     FData:TData;
     AxisX:string;
@@ -32,9 +31,10 @@ type
     property Data:TData read FData write SetData;
   end;
 
-  TChart=record
+  TChart=class
   public type
     Tchars=record
+      DataSymbol,
       VertMarker,
       HorzMarker,
       LeftLine,
@@ -79,8 +79,7 @@ type
     FSerie:TSerie;
     constructor Create(aData:TData;sz:TSize);
     procedure SetChars(const Value: TChars);
-    function ToString:string;
-
+    function ToString:string; reintroduce;
     property Size:TSize read FSize write SetSize;
     property Data:TData read FSerie.Fdata write SetData;
     property ShowHorizontalMarkers:Boolean read FShowHorizontalMarkers write SetShowHorizontalMarkers;
@@ -114,22 +113,23 @@ begin
   Data                := aData;
   ShowVerticalMarkers := true;
   FFillGaps           := false;
-
+{
   FSerie.DataSymbol         := '█';
   FChars.LeftLine           := '|';
   FChars.HorzMarker         := '─'; //╌ ┈
   FChars.VertMarker         := '|'; // ┊
   FChars.BottomLine         := '━';
   FChars.BottomLineCrossing := '┻';
-{
-  FSerie.DataSymbol         := '#'; // █░
+}
+
+  FChars.DataSymbol         := '#'; // █░
   FChars.LeftLine           := '|';
   FChars.HorzMarker         := '-';
   FChars.VertMarker         := ':';
   FChars.BottomLine         := '=';
   FChars.BottomLineCrossing := '+';
   IsDirty                   := true;
-}
+
 end;
 
 
@@ -147,24 +147,32 @@ begin
   if (c1=' ') then exit(c2);
   if (c2=' ') then exit(c1);
 
-  if (c1 in ['a'..'z','0'..'9']) then exit(c1);
-  if (c2 in ['a'..'z','0'..'9']) then exit(c2);
+  if CharInSet(c1, ['a'..'z','0'..'9']) then exit(c1);
+  if CharInSet(c2, ['a'..'z','0'..'9']) then exit(c2);
 
   if (c1='▄') and (c2='█') then Exit('█');
   if (c1='▀') and (c2='█') then Exit('█');
   if (c2='▄') and (c1='█') then Exit('█');
   if (c2='▀') and (c1='█') then Exit('█');
 
-  if (c1 in ['▄','▀','█']) then Exit(c1);
-  if (c2 in ['▄','▀','█']) then Exit(c1);
+  if CharInSet(c1, ['▄','▀','█']) then Exit(c1);
+  if CharInSet(c2, ['▄','▀','█']) then Exit(c1);
+
+  if (c1=':') and (c2='=') then Exit('=');
+  if (c2=':') and (c1='=') then Exit('=');
+
+  if (c1=':') and (c2='-') then Exit('+');
+  if (c2=':') and (c1='-') then Exit('+');
 
   if (c1='─') and (c2='|') then Exit('┼');
   if (c2='─') and (c1='|') then Exit('┼');
 
-  if (c1='━') and (c2='|') then Exit('┻');
-  if (c2='━') and (c1='|') then Exit('┻');
+  if (c1='━') and (c2='|') then Exit('┴');
+  if (c2='━') and (c1='|') then Exit('┴');
 
   if (c1='-') and (c2='|') then Exit('+');
+
+  Exit(c2);
 end;
 
 
@@ -238,6 +246,7 @@ begin
   if FSerie.vRange < 10000    then Digits := 0;
 
   ds := digits.ToString;
+
   // left labels
   for I := 0 to ChartArea.Height do
   begin
@@ -276,13 +285,13 @@ begin
     if (I mod binSize) = 0 then
     begin
       // draw places where marker lines cross bottom line
-      //TextAt(pvX + FMargins.Left + 1, FMaxC.cy - FMargins.Bottom, FChars.BottomLineCrossing, TJustify.left, true);
+      TextAt(pvX + FMargins.Left + 1, FMaxC.cy - FMargins.Bottom, FChars.BottomLineCrossing, TJustify.left, false);
       // draw vertical marker lines
       if ShowVerticalMarkers then
         for j := FMargins.Top-1 to FMaxC.cy - FMargins.Bottom  do
           TextAt(pvX + FMargins.Left + 1, j, FChars.VertMarker, TJustify.left, true);
       // bottom labels
-      TextAt(pvX + FMargins.Left + 1, FMaxC.cy - FMargins.Bottom + 1, IntTostr(I),TJustify.left,true);
+      TextAt(pvX + FMargins.Left + 1, FMaxC.cy - FMargins.Bottom + 1, IntTostr(I),TJustify.left,false);
     end;
   end;
 
@@ -326,7 +335,7 @@ begin
             TextAt(round(pvX) + FMargins.Left - 3, j, '█' {FSerie.DataSymbol},TJustify.left,false);
 
           for k := J+1  to (FMaxC.cy - FMargins.Bottom) - 1 do
-            TextAt(round(pvX) + FMargins.Left - 3, k, FSerie.DataSymbol,TJustify.left,false);
+            TextAt(round(pvX) + FMargins.Left - 3, k, Chars.DataSymbol,TJustify.left,false);
 
         end
   else
@@ -343,7 +352,7 @@ begin
 
 
           for k := J+1  to (FMaxC.cy - FMargins.Bottom) - 1 do
-            TextAt(round(pvX) + FMargins.Left + 1, k, FSerie.DataSymbol,TJustify.left,false);
+            TextAt(round(pvX) + FMargins.Left + 1, k, Chars.DataSymbol,TJustify.left,false);
         end;
 end;
 
@@ -351,7 +360,6 @@ procedure TChart.DrawPoints;
 var
   v1,v2,pvX,pvY1,pvY2,Y:double;
   l,x1,x2,i,j:integer;
-
 begin
   if FFillGaps then
             for I := Self.ChartArea.Left to self.ChartArea.Right do
@@ -404,7 +412,7 @@ procedure TChart.DrawLines;
 var
   v1,v2: Double;
   i,d1,dx,dy,pX1,pY1,pX2,pY2,jX,jY: Integer;
-  d,ang: Double;
+  d: Double;
   c: Char;
 begin
   for I := Low(FSerie.FData) to High(FSerie.FData) do
@@ -420,13 +428,12 @@ begin
       dx := px1 - px2;
       dy := pY1 - pY2;
       d := sqrt(sqr(dx) + sqr(dy));
-      ang := RadToDeg(ArcTan2(dy, dx));
       if d > 0.5 then
         for d1 := 0 to round(d) do
         begin
           jx := round(Interpolate(px1, px2, d1 / round(d), IT_LINEAR));
           jy := round(Interpolate(py1, py2, d1 / round(d), IT_LINEAR));
-          c := FSerie.DataSymbol;
+          c := Chars.DataSymbol;
           TextAt(jX + FMargins.Left + 1, (FMaxC.cy - FMargins.Bottom) - jY - 1, c,TJustify.left,true);
         end;
     end;
@@ -504,7 +511,7 @@ begin
   minV := MinValue(FData);
   maxV := MaxValue(FData);
   vRange:=maxV-minV;
-  VRange := Ceil((vRange)/10)*10;
+//  VRange := Ceil((vRange)/10)*10;
 
   if vRange=0 then
     vRange := 1;

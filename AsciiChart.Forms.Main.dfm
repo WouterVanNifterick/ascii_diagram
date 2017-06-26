@@ -2,8 +2,8 @@ object frmMain: TfrmMain
   Left = 0
   Top = 0
   Caption = 'ASCII Chart Generator'
-  ClientHeight = 710
-  ClientWidth = 1420
+  ClientHeight = 628
+  ClientWidth = 1085
   Color = clBtnFace
   DoubleBuffered = True
   Font.Charset = DEFAULT_CHARSET
@@ -14,34 +14,45 @@ object frmMain: TfrmMain
   OldCreateOrder = False
   Position = poScreenCenter
   OnCreate = FormCreate
+  OnDestroy = FormDestroy
   OnResize = UpdateChart
   PixelsPerInch = 96
   TextHeight = 13
   object Splitter1: TSplitter
-    Left = 1167
+    Left = 832
     Top = 0
     Width = 4
-    Height = 710
+    Height = 609
     Align = alRight
     ResizeStyle = rsUpdate
     ExplicitLeft = 1069
     ExplicitHeight = 809
   end
+  object Splitter2: TSplitter
+    Left = 65
+    Top = 0
+    Width = 4
+    Height = 609
+    ResizeStyle = rsUpdate
+    ExplicitLeft = 840
+    ExplicitHeight = 628
+  end
   object memInput: TMemo
     Left = 0
     Top = 0
     Width = 65
-    Height = 710
+    Height = 609
     Align = alLeft
+    ScrollBars = ssVertical
     TabOrder = 0
     OnChange = memInputChange
     OnDblClick = memInputDblClick
   end
   object memChart: TMemo
-    Left = 65
+    Left = 69
     Top = 0
-    Width = 1102
-    Height = 710
+    Width = 763
+    Height = 609
     Align = alClient
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
@@ -53,10 +64,10 @@ object frmMain: TfrmMain
     WordWrap = False
   end
   object pnlRight: TScrollBox
-    Left = 1171
+    Left = 836
     Top = 0
     Width = 249
-    Height = 710
+    Height = 609
     Align = alRight
     TabOrder = 2
     object grpCharacters: TGroupBox
@@ -64,18 +75,18 @@ object frmMain: TfrmMain
       Left = 3
       Top = 247
       Width = 239
-      Height = 167
+      Height = 45
       Align = alTop
       Caption = 'Characters'
       TabOrder = 0
-      ExplicitTop = 243
       object edChars: TValueListEditor
         Left = 2
-        Top = 15
+        Top = 36
         Width = 235
-        Height = 150
+        Height = 7
         Align = alClient
         TabOrder = 0
+        Visible = False
         OnStringsChange = UpdateChart
         ColWidths = (
           91
@@ -83,6 +94,22 @@ object frmMain: TfrmMain
         RowHeights = (
           18
           18)
+      end
+      object ComboBox1: TComboBox
+        Left = 2
+        Top = 15
+        Width = 235
+        Height = 21
+        Align = alTop
+        Style = csDropDownList
+        ItemIndex = 1
+        TabOrder = 1
+        Text = 'ASCII'
+        OnChange = ComboBox1Change
+        Items.Strings = (
+          'Custom'
+          'ASCII'
+          'Unicode')
       end
     end
     object grpSize: TGroupBox
@@ -162,7 +189,7 @@ object frmMain: TfrmMain
           Height = 29
           Align = alClient
           Enabled = False
-          Max = 100
+          Max = 150
           Min = 5
           ParentShowHint = False
           Frequency = 10
@@ -239,7 +266,6 @@ object frmMain: TfrmMain
         Caption = 'Horizontal'
         TabOrder = 0
         OnClick = UpdateChart
-        ExplicitHeight = 26
       end
       object cbVertical: TCheckBox
         AlignWithMargins = True
@@ -253,7 +279,6 @@ object frmMain: TfrmMain
         State = cbChecked
         TabOrder = 1
         OnClick = UpdateChart
-        ExplicitHeight = 78
       end
       object cbFillGaps: TCheckBox
         AlignWithMargins = True
@@ -267,9 +292,6 @@ object frmMain: TfrmMain
         State = cbChecked
         TabOrder = 2
         OnClick = UpdateChart
-        ExplicitLeft = 203
-        ExplicitTop = 20
-        ExplicitHeight = 78
       end
     end
     object rgChartType: TRadioGroup
@@ -293,13 +315,12 @@ object frmMain: TfrmMain
     object grpAxis: TGroupBox
       AlignWithMargins = True
       Left = 3
-      Top = 420
+      Top = 298
       Width = 239
       Height = 117
       Align = alTop
       Caption = 'Axis'
       TabOrder = 4
-      ExplicitTop = 476
       DesignSize = (
         239
         117)
@@ -346,5 +367,18 @@ object frmMain: TfrmMain
         OnChange = UpdateChart
       end
     end
+  end
+  object StatusBar1: TStatusBar
+    Left = 0
+    Top = 609
+    Width = 1085
+    Height = 19
+    Panels = <
+      item
+        Width = 50
+      end
+      item
+        Width = 50
+      end>
   end
 end
