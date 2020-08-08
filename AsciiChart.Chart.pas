@@ -482,16 +482,16 @@ begin
   // horz caption
   TextAt( 0 , 0, FSerie.AxisY, Left );
 
-  // Title
-  if FTitle<>'' then
-    TextAt( ChartArea.CenterPoint.X, ChartArea.Top-2, '[ '+FTitle+' ]', center ,true );
-
   // paint data points
   case FSerie.ChartType of
     Line  : DrawLines;
     Point : DrawPoints;
     Bar   : DrawBars;
   end;
+
+  // Title
+  if FTitle<>'' then
+    TextAt( ChartArea.CenterPoint.X, ChartArea.Top-2, '[ '+FTitle+' ]', center ,true );
 
   IsDirty := False;
 end;
