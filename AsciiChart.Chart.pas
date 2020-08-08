@@ -115,9 +115,9 @@ begin
   FFillGaps           := false;
 {
   FSerie.DataSymbol         := '█';
-  FChars.LeftLine           := '|';
+  FChars.LeftLine           := '│;
   FChars.HorzMarker         := '─'; //╌ ┈
-  FChars.VertMarker         := '|'; // ┊
+  FChars.VertMarker         := '│'; // ┊
   FChars.BottomLine         := '━';
   FChars.BottomLineCrossing := '┻';
 }
@@ -142,6 +142,7 @@ begin
 end;
 
 function MergeChars(c1,c2:char):char;
+const ca:TSysCharSet = [];
 begin
   if c1=c2 then Exit(c1);
   if (c1=' ') then exit(c2);
@@ -155,8 +156,8 @@ begin
   if (c2='▄') and (c1='█') then Exit('█');
   if (c2='▀') and (c1='█') then Exit('█');
 
-  if CharInSet(c1, ['▄','▀','█']) then Exit(c1);
-  if CharInSet(c2, ['▄','▀','█']) then Exit(c1);
+  if Pos(c1,'▄▀█') > 0  then Exit(c1);
+  if Pos(c2,'▄▀█') > 0  then Exit(c2);
 
   if (c1=':') and (c2='=') then Exit('=');
   if (c2=':') and (c1='=') then Exit('=');
@@ -171,6 +172,10 @@ begin
   if (c2='━') and (c1='|') then Exit('┴');
 
   if (c1='-') and (c2='|') then Exit('+');
+
+  if (c1='│') and (c2='─') then Exit('┼');
+  if (c2='│') and (c1='─') then Exit('┼');
+
 
   Exit(c2);
 end;
@@ -301,9 +306,9 @@ end;
 
 procedure TChart.DrawBars;
 var
-  v,v1,v2: Double;
+  v,v1,v2: Extended;
   i,j,k,l,x1,x2:integer;
-  Y,pvX,pvY,pvY1,pvY2: Double;
+  Y,pvX,pvY,pvY1,pvY2: Extended;
 begin
   if FFillGaps then
         for I := Self.ChartArea.Left to self.ChartArea.Right do
@@ -326,7 +331,7 @@ begin
           v2 := FSerie.FData[ x2 ];
           pvY2 := (((v2 - FSerie.minV) / FSerie.vRange) * ChartArea.Height);
 
-          Y := Interpolate(pvY1,pvY2,0.5,tinterpolationType.IT_LINEAR);
+          Y := pvY1{ Interpolate(pvY1,pvY2,0.5,tinterpolationType.IT_LINEAR)};
 
           j := (FMaxC.cy - FMargins.Bottom) - round(Y) - 1;
           if Y - trunc(Y) > 0.5 then
@@ -368,7 +373,7 @@ begin
               if l=0 then
                 exit;
 
-              pvX := I;
+              pvX := I-3;
 
               x1 := i-self.ChartArea.Left;
               x1 := round((x1 / self.ChartArea.Width)*l);
@@ -382,10 +387,10 @@ begin
               v2 := FSerie.FData[ x2 ];
               pvY2 := (((v2 - FSerie.minV) / FSerie.vRange) * ChartArea.Height);
 
-              Y := Interpolate(pvY1,pvY2,0.5,tinterpolationType.IT_LINEAR);
+              Y := pvY1{ Interpolate(pvY1,pvY2,0.5,tinterpolationType.IT_LINEAR)};
 
               j := (FMaxC.cy - FMargins.Bottom) - round(Y) - 1;
-              if Y - trunc(Y) > 0.5 then
+              if Frac(Y) > 0.5 then
                 TextAt(round(pvX) + FMargins.Left-1 , j, '▄' {FSerie.DataSymbol},TJustify.left,false)
               else
                 TextAt(round(pvX) + FMargins.Left-1 , j, '▀' {FSerie.DataSymbol},TJustify.left,false)
