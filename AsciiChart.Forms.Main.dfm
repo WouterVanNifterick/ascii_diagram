@@ -29,7 +29,7 @@ object frmMain: TfrmMain
     ExplicitHeight = 809
   end
   object Splitter2: TSplitter
-    Left = 65
+    Left = 81
     Top = 0
     Width = 4
     Height = 609
@@ -40,18 +40,21 @@ object frmMain: TfrmMain
   object memInput: TMemo
     Left = 0
     Top = 0
-    Width = 65
+    Width = 81
     Height = 609
+    Hint = 'Edit or paste numeric values here'
     Align = alLeft
+    ParentShowHint = False
     ScrollBars = ssVertical
+    ShowHint = True
     TabOrder = 0
     OnChange = memInputChange
     OnDblClick = memInputDblClick
   end
   object memChart: TMemo
-    Left = 69
+    Left = 85
     Top = 0
-    Width = 763
+    Width = 747
     Height = 609
     Align = alClient
     Font.Charset = DEFAULT_CHARSET
@@ -62,6 +65,8 @@ object frmMain: TfrmMain
     ParentFont = False
     TabOrder = 1
     WordWrap = False
+    ExplicitLeft = 69
+    ExplicitWidth = 763
   end
   object pnlRight: TScrollBox
     Left = 836
@@ -352,7 +357,7 @@ object frmMain: TfrmMain
         TabOrder = 1
         OnChange = UpdateChart
       end
-      object LabeledEdit1: TLabeledEdit
+      object edTitle: TLabeledEdit
         Left = 40
         Top = 78
         Width = 185

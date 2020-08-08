@@ -25,8 +25,8 @@ type
     lblHeight    : TLabel;
     tbHeight     : TTrackBar;
     grpMarkers   : TGroupBox;
-    cbHorizontal: TCheckBox;
-    cbVertical: TCheckBox;
+    cbHorizontal : TCheckBox;
+    cbVertical   : TCheckBox;
     rgChartType  : TRadioGroup;
     grpAxis      : TGroupBox;
     edAxisX      : TLabeledEdit;
@@ -35,12 +35,12 @@ type
     rbSizeCustom : TRadioButton;
     rbSizeAuto   : TRadioButton;
     Splitter1    : TSplitter;
-    LabeledEdit1 : TLabeledEdit;
+    edTitle: TLabeledEdit;
     rbSizeData   : TRadioButton;
-    cbFillGaps: TCheckBox;
-    Splitter2: TSplitter;
-    StatusBar1: TStatusBar;
-    ComboBox1: TComboBox;
+    cbFillGaps   : TCheckBox;
+    Splitter2    : TSplitter;
+    StatusBar1   : TStatusBar;
+    ComboBox1    : TComboBox;
     procedure memInputChange(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure memInputDblClick(Sender: TObject);
@@ -102,7 +102,7 @@ begin
   fs.DecimalSeparator := '.';
   for I := 0 to samples - 1 do
 //    s := s + Format('%.3f' + sLineBreak, [sin(2 * 2 * pi * i / samples) * 5], fs);
-    s := s + Format('%.3f' + sLineBreak, [i*1.0], fs);
+    s := s + Format('%.2f' + sLineBreak, [i*1.0], fs);
   memInput.Text := s;
 end;
 
@@ -152,37 +152,92 @@ begin
   Chart.Chars := Chars;
 end;
 
+type TDataType = (dtRaw, dtFloat, dtHex, dtHex2);
 
 procedure TfrmMain.memInputChange(Sender: TObject);
 var
   a:TData;s,t:string;
-  v:double;
+  v:double; vi, vo:Int64;
   fs:TFormatSettings;
+  I: Integer;
+  DataType:TDataType;
+  IsOdd : Boolean;
 begin
   fs.DecimalSeparator := '.';
 
+
+  DataType := dtFloat;
+
   a := [];
   s := memInput.Text;
-  s := s.Replace(',',sLineBreak);
-  s := s.Replace(#9,'');
-  s := s.Replace(' ','');
-  s := s.Replace('(','');
-  s := s.Replace(')','');
-  s := s.Replace(';','');
-  s := s.Replace(sLineBreak+sLineBreak,sLineBreak);
-  s := s.Replace(sLineBreak+sLineBreak,sLineBreak);
-  s := s.Replace(sLineBreak+sLineBreak,sLineBreak);
 
-  for s in s.Split([sLineBreak]) do
+  if s.StartsWith('hex2') then
   begin
-    t := trim(s);
-    if TryStrToFloat(t,v,fs) then
-      a := a+[v];
+    DataType := dtHex2;
+    s := s.Substring(4);
+  end
+  else
+  if s.StartsWith('hex') then
+  begin
+    DataType := dtHex;
+    s := s.Substring(3);
   end;
+
+  if s.StartsWith('raw') then
+  begin
+    DataType := dtRaw;
+    for I := 3 to length(s) do
+       a := a + [ord(s[I])];
+  end
+  else
+  begin
+    s := s.Replace(',',sLineBreak);
+    s := s.Replace( #9,sLineBreak);
+    s := s.Replace(' ',sLineBreak);
+    s := s.Replace('(','');
+    s := s.Replace(')','');
+    s := s.Replace(';','');
+    s := s.Replace(sLineBreak+sLineBreak,sLineBreak);
+    s := s.Replace(sLineBreak+sLineBreak,sLineBreak);
+    s := s.Replace(sLineBreak+sLineBreak,sLineBreak);
+
+    IsOdd := True;
+
+    for s in s.Split([sLineBreak]) do
+    begin
+      t := trim(s);
+      IsOdd := not IsOdd;
+      if DataType in [dtHex, dtHex2] then
+        if not t.StartsWith('$') then
+          t := '$'+t;
+
+      if t.StartsWith('$') then
+      begin
+        if TryStrToInt64(t,vi) then
+        begin
+          if DataType = dtHex then
+            a := a+[vi];
+
+          if DataType = dtHex2 then
+          begin
+            if IsOdd then
+              a := a+[vi]
+            else
+            begin
+              vo  := trunc(a[high(a)]) shl 8;
+              a[high(a)] := vo + vi
+            end;
+          end;
+        end;
+      end
+      else
+        if TryStrToFloat(t,v,fs) then
+          a := a+[v];
+    end;
+  end;
+
   Chart.Data := a;
   UpdateChart(Sender);
-//  memChart.Text := Chart.ToString;
-
 end;
 
 procedure TfrmMain.memInputDblClick(Sender: TObject);
@@ -203,6 +258,7 @@ begin
   Chart.FSerie.ChartType      := TChartType(rgChartType.ItemIndex);
   Chart.AxisX                 := edAxisX.Text;
   Chart.AxisY                 := edAxisY.Text;
+  Chart.Title                 := edTitle.Text;
 
   GuiCharsToChart;
 
@@ -281,9 +337,9 @@ begin
        end;
     2: begin
          Chars.DataSymbol         := '█';
-         Chars.LeftLine           := '|';
+         Chars.LeftLine           := '│';
          Chars.HorzMarker         := '─'; //╌ ┈
-         Chars.VertMarker         := '|'; // ┊ ┼
+         Chars.VertMarker         := '│'; // ┊ ┼
 
          Chars.BottomLine         := '─';
          Chars.BottomLineCrossing := '┴';
