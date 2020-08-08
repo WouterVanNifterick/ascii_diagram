@@ -306,9 +306,9 @@ end;
 
 procedure TChart.DrawBars;
 var
-  v,v1,v2: Extended;
+  v,v1: Double;
   i,j,k,l,x1,x2:integer;
-  Y,pvX,pvY,pvY1,pvY2: Extended;
+  Y,pvX,pvY,pvY1: Double;
 begin
   if FFillGaps then
         for I := Self.ChartArea.Left to self.ChartArea.Right do
@@ -328,7 +328,6 @@ begin
           x2 := round((x2 / self.ChartArea.Width)*l);
           if x2>=l then
             exit;
-          v2 := FSerie.FData[ x2 ];
 
           Y := pvY1;
 
@@ -362,7 +361,7 @@ end;
 
 procedure TChart.DrawPoints;
 var
-  v1,v2,pvX,pvY1,pvY2,Y:double;
+  v1,pvX,pvY1,Y:double;
   l,x1,x2,i,j:integer;
 begin
   if FFillGaps then
@@ -383,7 +382,6 @@ begin
               x2 := round((x2 / self.ChartArea.Width)*l);
               if x2>=l then
                 exit;
-              v2 := FSerie.FData[ x2 ];
               Y := pvY1;
 
               j := (FMaxC.cy - FMargins.Bottom) - round(Y) - 1;

@@ -5,11 +5,10 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ComCtrls, Vcl.ExtCtrls,
-  Vcl.Grids, Vcl.ValEdit, Vcl.ShareContract, AsciiChart.Chart;
+  Vcl.Grids, Vcl.ValEdit, Vcl.ShareContract, AsciiDiagram.Chart;
 
 type
   // █▀░▄
-
 
   TfrmMain = class(TForm)
     memInput     : TMemo;
@@ -101,8 +100,10 @@ begin
   s := '';
   fs.DecimalSeparator := '.';
   for I := 0 to samples - 1 do
-//    s := s + Format('%.3f' + sLineBreak, [sin(2 * 2 * pi * i / samples) * 5], fs);
-    s := s + Format('%.2f' + sLineBreak, [i*1.0], fs);
+    s := s + Format('%.3f' + sLineBreak, [sin(2 * 2 * pi * i / samples) * 5], fs);
+
+  // linear
+  // s := s + Format('%.2f' + sLineBreak, [i*1.0], fs);
   memInput.Text := s;
 end;
 
@@ -185,7 +186,6 @@ begin
 
   if s.StartsWith('raw') then
   begin
-    DataType := dtRaw;
     for I := 3 to length(s) do
        a := a + [ord(s[I])];
   end
